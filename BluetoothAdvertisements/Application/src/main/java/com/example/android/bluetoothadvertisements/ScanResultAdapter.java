@@ -16,6 +16,7 @@
 
 package com.example.android.bluetoothadvertisements;
 
+import android.bluetooth.BluetoothDevice;
 import android.bluetooth.le.ScanResult;
 import android.content.Context;
 import android.os.SystemClock;
@@ -46,6 +47,10 @@ public class ScanResultAdapter extends BaseAdapter {
         mArrayList = new ArrayList<>();
     }
 
+    public BluetoothDevice getDevice(int position) {
+        return mArrayList.get(position).getDevice();
+    }
+
     @Override
     public int getCount() {
         return mArrayList.size();
@@ -71,7 +76,6 @@ public class ScanResultAdapter extends BaseAdapter {
 
         TextView deviceNameView = (TextView) view.findViewById(R.id.device_name);
         TextView deviceAddressView = (TextView) view.findViewById(R.id.device_address);
-        TextView lastSeenView = (TextView) view.findViewById(R.id.last_seen);
 
         ScanResult scanResult = mArrayList.get(position);
 
@@ -81,7 +85,6 @@ public class ScanResultAdapter extends BaseAdapter {
         }
         deviceNameView.setText(name);
         deviceAddressView.setText(scanResult.getDevice().getAddress());
-        lastSeenView.setText(getTimeSinceString(mContext, scanResult.getTimestampNanos()));
 
         return view;
     }
@@ -125,43 +128,4 @@ public class ScanResultAdapter extends BaseAdapter {
         mArrayList.clear();
     }
 
-    /**
-     * Takes in a number of nanoseconds and returns a human-readable string giving a vague
-     * description of how long ago that was.
-     */
-    public static String getTimeSinceString(Context context, long timeNanoseconds) {
-        String lastSeenText = context.getResources().getString(R.string.last_seen) + " ";
-
-        long timeSince = SystemClock.elapsedRealtimeNanos() - timeNanoseconds;
-        long secondsSince = TimeUnit.SECONDS.convert(timeSince, TimeUnit.NANOSECONDS);
-
-        if (secondsSince < 5) {
-            lastSeenText += context.getResources().getString(R.string.just_now);
-        } else if (secondsSince < 60) {
-            lastSeenText += secondsSince + " " + context.getResources()
-                    .getString(R.string.seconds_ago);
-        } else {
-            long minutesSince = TimeUnit.MINUTES.convert(secondsSince, TimeUnit.SECONDS);
-            if (minutesSince < 60) {
-                if (minutesSince == 1) {
-                    lastSeenText += minutesSince + " " + context.getResources()
-                            .getString(R.string.minute_ago);
-                } else {
-                    lastSeenText += minutesSince + " " + context.getResources()
-                            .getString(R.string.minutes_ago);
-                }
-            } else {
-                long hoursSince = TimeUnit.HOURS.convert(minutesSince, TimeUnit.MINUTES);
-                if (hoursSince == 1) {
-                    lastSeenText += hoursSince + " " + context.getResources()
-                            .getString(R.string.hour_ago);
-                } else {
-                    lastSeenText += hoursSince + " " + context.getResources()
-                            .getString(R.string.hours_ago);
-                }
-            }
-        }
-
-        return lastSeenText;
-    }
 }

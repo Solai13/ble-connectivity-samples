@@ -16,13 +16,12 @@
 -->
 
 <resources>
-    <string name="app_name">BluetoothAdvertisements</string>
+    <string name="app_name">BluetoothLE_MFT</string>
     <string name="intro_message">
         <![CDATA[
         
 
-This samples demonstrates how to use the Bluetooth Low Power Advertisements API
-with a single device acting as both scanner and advertiser.
+This app demonstrates how to use the Bluetooth Low Power API with an android device.
 
         
         ]]>

@@ -30,9 +30,14 @@ public class Constants {
      * The official specification can be found here:
      * {@link https://www.bluetooth.org/en-us/specification/assigned-numbers/service-discovery}
      */
+    // UUID of BLE device
     public static final ParcelUuid Service_UUID = ParcelUuid
-            .fromString("0000b81d-0000-1000-8000-00805f9b34fb");
+            .fromString("6435908B-982E-4761-93AA-BBB072119496");
+
+    public static final String DEVICE_ADDRESS = "94:DE:B8:DB:55:F3";
 
     public static final int REQUEST_ENABLE_BT = 1;
+
+    public static final int MY_PERMISSIONS_REQUEST_LOCATION = 2;
 
 }

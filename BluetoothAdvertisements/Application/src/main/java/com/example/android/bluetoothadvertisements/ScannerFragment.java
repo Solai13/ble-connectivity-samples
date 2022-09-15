@@ -17,11 +17,13 @@
 package com.example.android.bluetoothadvertisements;
 
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.ListFragment;
@@ -32,6 +34,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ListView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -47,9 +50,9 @@ public class ScannerFragment extends ListFragment {
     private static final String TAG = ScannerFragment.class.getSimpleName();
 
     /**
-     * Stops scanning after 5 seconds.
+     * Stops scanning after 15 seconds.
      */
-    private static final long SCAN_PERIOD = 5000;
+    private static final long SCAN_PERIOD = 15000;
 
     private BluetoothAdapter mBluetoothAdapter;
 
@@ -131,6 +134,17 @@ public class ScannerFragment extends ListFragment {
         }
     }
 
+    @Override
+    public void onListItemClick(ListView l, View v, int position, long id) {
+        final BluetoothDevice device = mAdapter.getDevice(position);
+        if (device == null) return;
+        final Intent intent = new Intent(getActivity(), DeviceControlActivity.class);
+        intent.putExtra(DeviceControlActivity.EXTRAS_DEVICE_NAME, device.getName());
+        intent.putExtra(DeviceControlActivity.EXTRAS_DEVICE_ADDRESS, device.getAddress());
+        stopScanning();
+        startActivity(intent);
+    }
+
     /**
      * Start scanning for BLE Advertisements (& set it up to stop after a set period of time).
      */
@@ -181,7 +195,9 @@ public class ScannerFragment extends ListFragment {
 
         ScanFilter.Builder builder = new ScanFilter.Builder();
         // Comment out the below line to see all BLE devices around you
-        builder.setServiceUuid(Constants.Service_UUID);
+//        builder.setServiceUuid(Constants.Service_UUID);
+//        builder.setDeviceName("Blue2-MFT");
+        builder.setDeviceAddress(Constants.DEVICE_ADDRESS);
         scanFilters.add(builder.build());
 
         return scanFilters;

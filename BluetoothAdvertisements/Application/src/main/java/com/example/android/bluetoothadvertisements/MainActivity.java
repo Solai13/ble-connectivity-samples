@@ -16,13 +16,22 @@
 
 package com.example.android.bluetoothadvertisements;
 
+import android.Manifest;
+import android.app.Activity;
+import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothManager;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.RequiresApi;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.content.ContextCompat;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -33,6 +42,7 @@ public class MainActivity extends FragmentActivity {
 
     private BluetoothAdapter mBluetoothAdapter;
 
+    @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -50,17 +60,8 @@ public class MainActivity extends FragmentActivity {
                 // Is Bluetooth turned on?
                 if (mBluetoothAdapter.isEnabled()) {
 
-                    // Are Bluetooth Advertisements supported on this device?
-                    if (mBluetoothAdapter.isMultipleAdvertisementSupported()) {
+                        checkLocationPermission();
 
-                        // Everything is supported and enabled, load the fragments.
-                        setupFragments();
-
-                    } else {
-
-                        // Bluetooth Advertisements are not supported.
-                        showErrorText(R.string.bt_ads_not_supported);
-                    }
                 } else {
 
                     // Prompt user to turn on Bluetooth (logic continues in onActivityResult()).
@@ -75,6 +76,7 @@ public class MainActivity extends FragmentActivity {
         }
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -83,18 +85,10 @@ public class MainActivity extends FragmentActivity {
 
                 if (resultCode == RESULT_OK) {
 
-                    // Bluetooth is now Enabled, are Bluetooth Advertisements supported on
-                    // this device?
-                    if (mBluetoothAdapter.isMultipleAdvertisementSupported()) {
+                    // Bluetooth is now Enabled
+                    // Check for Location Permission
+                    checkLocationPermission();
 
-                        // Everything is supported and enabled, load the fragments.
-                        setupFragments();
-
-                    } else {
-
-                        // Bluetooth Advertisements are not supported.
-                        showErrorText(R.string.bt_ads_not_supported);
-                    }
                 } else {
 
                     // User declined to enable Bluetooth, exit the app.
@@ -116,9 +110,6 @@ public class MainActivity extends FragmentActivity {
         scannerFragment.setBluetoothAdapter(mBluetoothAdapter);
         transaction.replace(R.id.scanner_fragment_container, scannerFragment);
 
-        AdvertiserFragment advertiserFragment = new AdvertiserFragment();
-        transaction.replace(R.id.advertiser_fragment_container, advertiserFragment);
-
         transaction.commit();
     }
 
@@ -126,5 +117,76 @@ public class MainActivity extends FragmentActivity {
 
         TextView view = (TextView) findViewById(R.id.error_textview);
         view.setText(getString(messageId));
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    boolean checkLocationPermission() {
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+
+            // Should we show an explanation?
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                    Manifest.permission.ACCESS_FINE_LOCATION)) {
+
+                // Show an explanation to the user *asynchronously* -- don't block
+                // this thread waiting for the user's response! After the user
+                // sees the explanation, try again to request the permission.
+                new AlertDialog.Builder(this)
+                        .setTitle(R.string.title_location_permission)
+                        .setMessage(R.string.text_location_permission)
+                        .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                //Prompt the user once explanation has been shown
+                                ActivityCompat.requestPermissions(MainActivity.this,
+                                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                                        Constants.MY_PERMISSIONS_REQUEST_LOCATION);
+                            }
+                        })
+                        .create()
+                        .show();
+
+
+            } else {
+                // No explanation needed, we can request the permission.
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                        Constants.MY_PERMISSIONS_REQUEST_LOCATION);
+            }
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case Constants.MY_PERMISSIONS_REQUEST_LOCATION: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+                    // permission was granted, yay! Do the
+                    // location-related task you need to do.
+                    if (ContextCompat.checkSelfPermission(this,
+                            Manifest.permission.ACCESS_FINE_LOCATION)
+                            == PackageManager.PERMISSION_GRANTED) {
+
+                        setupFragments();
+                    }
+
+                } else {
+
+                    Toast.makeText(this, R.string.location_not_enabled_leaving,
+                            Toast.LENGTH_SHORT).show();
+                    finish();
+
+                }
+            }
+
+        }
     }
 }
